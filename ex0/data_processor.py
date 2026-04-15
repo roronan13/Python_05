@@ -74,11 +74,13 @@ class LogProcessor(DataProcessor):
 
     def validate(self, data: Any) -> bool:
         if isinstance(data, dict):
-            return all(isinstance(key, str) and isinstance(value, str) for key, value in data.items())
+            return all(isinstance(key, str) and isinstance(value, str) for key,
+                       value in data.items())
         elif isinstance(data, list):
             if all(isinstance(d, dict) for d in data):
                 for d in data:
-                    if not all(isinstance(key, str) and isinstance(value, str) for key, value in d.items()):
+                    if not all(isinstance(key, str) and isinstance(value, str)
+                               for key, value in d.items()):
                         return False
                 return True
             else:
