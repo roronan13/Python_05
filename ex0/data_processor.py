@@ -6,7 +6,8 @@ from typing import Any
 
 class DataProcessor(ABC):
     def __init__(self):
-        self.datas = []
+        self.datas: list = []
+        self.index: int = 0
 
     @abstractmethod
     def validate(self, data: Any) -> bool:
@@ -17,7 +18,13 @@ class DataProcessor(ABC):
         pass
 
     def output(self) -> tuple[int, str]:
-        
+        if not self.datas:
+            raise Exception("No data available for output\n")
+
+        extracted: tuple[int, str] = (self.index, self.datas.pop(0))
+        self.index += 1
+        return extracted
+
 
 class NumericProcessor(DataProcessor):
 
@@ -28,11 +35,11 @@ class NumericProcessor(DataProcessor):
             return all(isinstance(d, (int, float)) for d in data)
         else:
             return False
-        
+
     def ingest(self, data: int | float | list[int | float]) -> None:
         if not self.validate(data):
             raise Exception("Improper numeric data\n")
-        
+
         if isinstance(data, (int, float)):
             self.datas.append(str(data))
 
@@ -50,11 +57,11 @@ class TextProcessor(DataProcessor):
             return all(isinstance(d, str) for d in data)
         else:
             return False
-        
+
     def ingest(self, data: str | list[str]) -> None:
         if not self.validate(data):
             raise Exception("Improper string data\n")
-        
+
         if isinstance(data, str):
             self.datas.append(data)
 
@@ -73,11 +80,19 @@ class LogProcessor(DataProcessor):
                 for d in data:
                     if not all(isinstance(key, str) and isinstance(value, str) for key, value in d.items()):
                         return False
+                return True
             else:
                 return False
-            return True
         else:
             return False
 
     def ingest(self, data: dict | list[dict]) -> None:
-        
+        if not self.validate(data):
+            raise Exception("Improper log data\n")
+
+        if isinstance(data, dict):
+            self.datas.append(f"{data['log_level']} : {data['log_message']}")
+
+        else:
+            for d in data:
+                self.datas.append(f"{d['log_level']} : {d['log_message']}")
