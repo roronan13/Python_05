@@ -133,12 +133,19 @@ class ExportPlugin(Protocol):
 
 class CsvExportPlugin():
     def process_output(self, data: list[tuple[int, str]]) -> None:
-
+        for one_data_type in data:
+            for each_data in one_data_type:
+                print("CSV output : ")
+                print(f"{each_data},", end="")
 
 
 class JsonExportPlugin():
     def process_output(self, data: list[tuple[int, str]]) -> None:
-
+        for one_data_type in data:
+            for each_data in one_data_type:
+                print("JSON output : \n{")
+                print(f"'item_': '{each_data}', ", end="")
+                print("}")
 
 
 class DataStream:
@@ -190,3 +197,18 @@ remaining {len(data_processor.datas)} on processor")
 
 
 if __name__ == "__main__":
+    numeric = NumericProcessor("Numeric")
+    text = TextProcessor("Text")
+    log = LogProcessor("Log")
+
+    print(" === Code Nexus - Data Stream === \n")
+
+    data_stream = DataStream()
+
+    data_stream.print_processors_stats()
+
+    data_stream.register_processor(numeric)
+    data_stream.register_processor(text)
+    data_stream.register_processor(log)
+
+    
