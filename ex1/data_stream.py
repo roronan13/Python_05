@@ -209,7 +209,8 @@ is connected'}], 42, ['Hi', 'five']]")
 
     data_stream.print_processors_stats()
 
-    print("Consume some elements from the data processors: Numeric 3, Text 2, Log 1")
+    print("Consume some elements from the data processors: Numeric 3, Text 2, \
+Log 1")
     numeric.output()
     numeric.output()
     numeric.output()
