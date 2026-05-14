@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Any
+from typing import Protocol
 
 
 class DataProcessor(ABC):
@@ -170,4 +171,3 @@ remaining {len(data_processor.datas)} on processor")
 
 
 if __name__ == "__main__":
-    
