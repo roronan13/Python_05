@@ -134,10 +134,11 @@ class ExportPlugin(Protocol):
 
 class CsvExportPlugin():
     def process_output(self, data: list[tuple[int, str]]) -> None:
-        for one_data_type in data:
-            print("CSV output : ")
-            for each_data in one_data_type:
-                print(f"{each_data},", end="")
+        print("CSV output : ")
+        for one_data in data:
+            x, y = one_data
+            print(f"{y}, ", end="")
+        print("")
 
 
 class JsonExportPlugin():
@@ -192,13 +193,12 @@ remaining {len(data_processor.datas)} on processor")
             print("")
 
     def output_pipeline(self, nb: int, export_plugin: ExportPlugin) -> None:
-        list_of_outputs: list[tuple[int, str]] = []
 
-        for i in range(nb):
-            for data_processor in self.data_processors:
+        for data_processor in self.data_processors:
+            list_of_outputs: list[tuple[int, str]] = []
+            for i in range(nb):
                 list_of_outputs.append(data_processor.output())
-
-        export_plugin.process_output(list_of_outputs)
+            export_plugin.process_output(list_of_outputs)
 
 
 if __name__ == "__main__":
