@@ -126,6 +126,20 @@ class LogProcessor(DataProcessor):
         except Exception as e:
             print(f"Got exception : {e}")
 
+class ExportPlugin(Protocol):
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+        pass
+
+
+class CsvExportPlugin():
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+
+
+
+class JsonExportPlugin():
+    def process_output(self, data: list[tuple[int, str]]) -> None:
+
+
 
 class DataStream:
     def __init__(self):
@@ -168,6 +182,11 @@ in stream : {data}")
 {data_processor.ingests_count} items processed, \
 remaining {len(data_processor.datas)} on processor")
             print("")
+
+    def output_pipeline(self, nb: int, export_plugin: ExportPlugin) -> None:
+        for i in range (nb):
+            for data_processor in self.data_processors:
+                export_plugin.process_output(data_processor.output())
 
 
 if __name__ == "__main__":
