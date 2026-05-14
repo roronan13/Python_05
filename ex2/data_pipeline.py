@@ -126,6 +126,7 @@ class LogProcessor(DataProcessor):
         except Exception as e:
             print(f"Got exception : {e}")
 
+
 class ExportPlugin(Protocol):
     def process_output(self, data: list[tuple[int, str]]) -> None:
         pass
@@ -134,8 +135,8 @@ class ExportPlugin(Protocol):
 class CsvExportPlugin():
     def process_output(self, data: list[tuple[int, str]]) -> None:
         for one_data_type in data:
+            print("CSV output : ")
             for each_data in one_data_type:
-                print("CSV output : ")
                 print(f"{each_data},", end="")
 
 
@@ -191,9 +192,13 @@ remaining {len(data_processor.datas)} on processor")
             print("")
 
     def output_pipeline(self, nb: int, export_plugin: ExportPlugin) -> None:
-        for i in range (nb):
+        list_of_outputs: list[tuple[int, str]] = []
+
+        for i in range(nb):
             for data_processor in self.data_processors:
-                export_plugin.process_output(data_processor.output())
+                list_of_outputs.append(data_processor.output())
+
+        export_plugin.process_output(list_of_outputs)
 
 
 if __name__ == "__main__":
@@ -211,4 +216,18 @@ if __name__ == "__main__":
     data_stream.register_processor(text)
     data_stream.register_processor(log)
 
-    
+    print("\nSend first batch of data on stream : ['Hello world', \
+[3.14, -1, 2.71], [{'log_level': 'WARNING', 'log_message': 'Telnet \
+access! Use ssh instead'}, {'log_level': 'INFO', 'log_message': 'User wil \
+is connected'}], 42, ['Hi', 'five']]")
+    data_stream.process_stream(['Hello world', [3.14, -1, 2.71],
+                                [{'log_level': 'WARNING', 'log_message':
+                                    'Telnet access! Use ssh instead'},
+                                {'log_level': 'INFO', 'log_message': 'User'
+                                    'wil is connected'}], 42, ['Hi', 'five']])
+
+    data_stream.print_processors_stats()
+
+    data_stream.output_pipeline(3, CsvExportPlugin())
+
+    data_stream.print_processors_stats()
