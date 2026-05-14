@@ -5,9 +5,11 @@ from typing import Any
 
 
 class DataProcessor(ABC):
-    def __init__(self):
+    def __init__(self, name: str):
         self.datas: list[str] = []
         self.index: int = 0
+        self.name: str = name
+        self.ingests_count: int = 0
 
     @abstractmethod
     def validate(self, data: Any) -> bool:
@@ -48,10 +50,12 @@ class NumericProcessor(DataProcessor):
 
             if isinstance(data, (int, float)):
                 self.datas.append(str(data))
+                self.ingests_count += 1
 
             else:
                 for d in data:
                     self.datas.append(str(d))
+                    self.ingests_count += 1
 
         except Exception as e:
             print(f"Got exception : {e}")
@@ -74,10 +78,12 @@ class TextProcessor(DataProcessor):
 
             if isinstance(data, str):
                 self.datas.append(data)
+                self.ingests_count += 1
 
             else:
                 for d in data:
                     self.datas.append(d)
+                    self.ingests_count += 1
 
         except Exception as e:
             print(f"Got exception : {e}")
@@ -109,10 +115,12 @@ class LogProcessor(DataProcessor):
             if isinstance(data, dict):
                 self.datas.append(f"{data['log_level']}: \
 {data['log_message']}")
+                self.ingests_count += 1
 
             else:
                 for d in data:
                     self.datas.append(f"{d['log_level']}: {d['log_message']}")
+                    self.ingests_count += 1
 
         except Exception as e:
             print(f"Got exception : {e}")
@@ -121,33 +129,92 @@ class LogProcessor(DataProcessor):
 class DataStream:
     def __init__(self):
         self.data_processors: list[DataProcessor] = []
+        print("Initialize Data Stream ...")
 
     def register_processor(self, proc: DataProcessor) -> None:
         self.data_processors.append(proc)
+        print(f"Registering {proc.name} Processor")
 
     def process_stream(self, stream: list[Any]) -> None:
         validated: bool
 
-        for data in stream:
-            validated = False
+        if len(self.data_processors) == 0:
+            print("Careful, you want to process stream but you dont't \
+have any data processor registered !\n")
 
-            for data_processor in self.data_processors:
-                if data_processor.validate(data) is True:
-                    data_processor.ingest(data)
-                    validated = True
-                    break
+        else:
+            for data in stream:
+                validated = False
 
-            if validated is False:
-                print(f"DataStream error - Can't process element \
+                for data_processor in self.data_processors:
+                    if data_processor.validate(data) is True:
+                        data_processor.ingest(data)
+                        validated = True
+                        break
+
+                if validated is False:
+                    print(f"DataStream error - Can't process element \
 in stream : {data}")
+
+    def print_processors_stats(self) -> None:
+        print("\n == DataStream Statistics == ")
+        if len(self.data_processors) == 0:
+            print("No processor found, no data.\n")
+
+        else:
+            for data_processor in self.data_processors:
+                print(f"{data_processor.name} Processor: total \
+{data_processor.ingests_count} items processed, \
+remaining {len(data_processor.datas)} on processor")
+            print("")
 
 
 if __name__ == "__main__":
-    numeric = NumericProcessor()
-    text = TextProcessor()
-    log = LogProcessor()
+    numeric = NumericProcessor("Numeric")
+    text = TextProcessor("Text")
+    log = LogProcessor("Log")
+
+    print(" === Code Nexus - Data Stream === \n")
 
     data_stream = DataStream()
 
+    data_stream.print_processors_stats()
+
     data_stream.register_processor(numeric)
-    data_stream.process_stream(["Oui", 10, 42, "allo", 13])
+
+    print("\nSend first batch of data on stream : ['Hello world', \
+[3.14, -1, 2.71], [{'log_level': 'WARNING', 'log_message': 'Telnet \
+access! Use ssh instead'}, {'log_level': 'INFO', 'log_message': 'User wil \
+is connected'}], 42, ['Hi', 'five']]")
+    data_stream.process_stream(['Hello world', [3.14, -1, 2.71],
+                                [{'log_level': 'WARNING', 'log_message':
+                                    'Telnet access! Use ssh instead'},
+                                {'log_level': 'INFO', 'log_message': 'User'
+                                    'wil is connected'}], 42, ['Hi', 'five']])
+
+    data_stream.print_processors_stats()
+
+    data_stream.register_processor(text)
+    data_stream.register_processor(log)
+
+    print("\nSend the same batch again.")
+    data_stream.process_stream(['Hello world',
+                                [3.14, -1, 2.71], [{'log_level': 'WARNING',
+                                                    'log_message': 'Telnet'
+                                                    'access! Use ssh instead'},
+                                                   {'log_level': 'INFO',
+                                                    'log_message': 'User wil'
+                                                    'is connected'}], 42,
+                                ['Hi', 'five']])
+
+    data_stream.print_processors_stats()
+
+    print("Consume some elements from the data processors: Numeric 3, Text 2, Log 1")
+    numeric.output()
+    numeric.output()
+    numeric.output()
+    text.output()
+    text.output()
+    log.output()
+
+    data_stream.print_processors_stats()
